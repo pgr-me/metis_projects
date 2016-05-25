@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Jenks</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <script src='simple_statistics.js'></script>
+    <script src='jenks.js'></script>
+    <script src='get_matrices.js'></script>
+  
+  </head>
+  <body>
+
+
+  <p>asdf;lkjasdf</p>
+
+
+</script>
+
+<script>
+
+
+//get json data
+var json = (function () {
+    var json = null;
+    $.ajax({
+        'async': false,
+        'global': false,
+        'url': 'nums.json',
+        'dataType': "json",
+        'success': function (data) {
+            json = data;
+        }
+    });
+    return json;
+})(); 
+
+//parse json file
+var parsed = json;
+var arr = [];
+
+for (var x in parsed){
+  arr.push(parsed[x]);
+}
+nums = arr[0];
+
+breaks = 5
+
+var the_sample = ss.sample(nums,10000)
+//loop through samples taken from parsed json file
+for (i=2; i<20; i++) {
+  //console.log(the_sample)
+  var the_breaks = jenks(the_sample, i);
+  console.log(the_breaks[1]);
+}
+
+
+//var the_variance = getMatrices(nums,2);
+//console.log(the_variance);
+
+</script>
+
+  </body>
+</html>
