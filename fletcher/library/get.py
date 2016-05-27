@@ -18,9 +18,10 @@ def get_1000_articles(api_name, query, start):
     pickle_list = []
     for i in range(0, 100):
         pickle_list.append(api_name.search(q=query, begin_date=start, sort='oldest', page=i + 1))
-        first_date, last_date = get_date(pickle_list, 0), get_date(pickle_list, -1)
+    first_date, last_date = get_date(pickle_list, 0), get_date(pickle_list, -1)
     with open('data/marijuana_' + first_date + '_to_' + last_date + '.pickle', 'wb') as f:
         pickle.dump(pickle_list, f)
+    return pickle_list
 
 
 def convert(data):
