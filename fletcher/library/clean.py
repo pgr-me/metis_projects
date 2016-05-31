@@ -1,10 +1,11 @@
 import pandas as pd
+import re
 
 
 def stringify_data(dataframe):
     list_o_cols = dataframe.columns.values
     for col in list_o_cols:
-        dataframe[col] = [x.encode('utf-8') for x in dataframe[col]]
+        dataframe[col] = [x.encode('latin-1', 'replace') for x in dataframe[col]]
     return dataframe
 
 
@@ -17,8 +18,12 @@ def lower_case_columns(dataframe):
     return dataframe
 
 
-def rid_punctuation(dataframe):
-    list_o_cols = dataframe.columns.values
+def replace_string(a_string, regex_pattern):
+    pattern = re.compile(regex_pattern)
+    return pattern.sub('', a_string)
+
+
+def rid_punctuation(dataframe, list_o_cols):
     for col in list_o_cols:
         dataframe['temp'] = dataframe[col].str.replace('[^\w\s]', '')
         dataframe.drop(col, axis=1, inplace=True)
@@ -46,17 +51,6 @@ def mask(dataframe, key, value, operator='=='):
         return dataframe[dataframe[key] < value]
     if operator == '<=':
         return dataframe[dataframe[key] <= value]
-
-
-def str_to_date(dataframe, col):
-    dataframe['temp'] = pd.to_datetime(dataframe['date_pub'], errors='coerce')
-
-
-def mask(dataframe, key, value, operator='equals'):
-    if operator == 'equals':
-        return dataframe[dataframe[key] == value]
-    if operator == 'not_equals':
-        return dataframe[dataframe[key] != value]
 
 
 def str_to_date(dataframe, col):
