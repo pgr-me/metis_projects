@@ -38,8 +38,10 @@ def stem_li(li):
 
 def remove_stopwords(li):
     li_sw = []
+    cached_stop_words = set(stopwords.words('english'))
+    cached_stop_words.update(('al', 'a1', '100 report', 'street 212', 'admiss see', 'hour admiss see', 'hour admiss', 'admiss see abov', 'hour admiss see abov', '2495', '2595', 'doubleday', 'metro brief', 'relat articl page', 'relat articl', 'harpercollin', 'littl brown', 'metro brief new', '2795', 'week week list', 'last week week list', 'last week week', 'week thi last', 'week thi last week', 'weak list', 'thi last week', 'thi last week week', 'nation brief', '2396200', '212 2396200', '212', 'street 212 2396200', 'street 212', 'tonight tomorrow', '2396200 brantley', '212 2396200 brantley', 'street clinton', 'clinton 212', 'street clinton 212', 'street 212 2396200 brantley', 'theater', 'tonight tomorrow night', 'dun', 'dargi', '8212', '007', '007 ratti', '007 ratti puni', '007 ratti puni account', '01', '01 nanogram', '01 nanogram per', '01 nanogram per cubic', '011441712405224', '011441712405224 concern', 'tomorrow night', 'said today', 'upi', 'hour admiss', 'admiss see', 'admiss see abov', 'hour admiss see', '99 report', 'hour admiss see above', 'metro brief', 'relat articl page', 'relat articl', 'littl brown', 'metro brief new', 'week list', 'week thi last week', 'thi last week', 'thi last week week', 'last week week', 'week thi last', 'week week list', 'last week week list', 'nation brief', 'brief new york', 'metro brief new york', 'tonight tomorrow night', '3074100', 'brooklyn 718', 'tomorrow night', '44th', '44th street', '718', '99 report'))
     for article in li:
-        filtered_words = [word for word in article if word not in stopwords.words('english')]
+        filtered_words = [word for word in article if word not in cached_stop_words]
         li_sw.append(filtered_words)
     return li_sw
 

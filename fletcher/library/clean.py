@@ -53,6 +53,10 @@ def mask(dataframe, key, value, operator='=='):
         return dataframe[dataframe[key] <= value]
 
 
+def double_mask(dataframe, key, val1, val2, op1, op2):
+    return mask(dataframe, key, val1, op1) & mask(dataframe, key, val2, op2)
+
+
 def str_to_date(dataframe, col):
     dataframe['temp'] = pd.to_datetime(dataframe['date_pub'])
     dataframe.drop(col, axis=1, inplace=True)
