@@ -1,8 +1,0 @@
-at > ~/.twitter_config << END
-{
- "consumer_key": "NEYs2FQ18kdUL9BS9iO8wYK7n",
- "consumer_secret": "1rO47ItN57Amd0S87SZPcGGEZocND0cxFnCEajhrmQCF1Z07ya",
- "access_token": "387485318-A4aLI9MQxisX94QakbfafnqviEnjabMgfiu4Oj78",
- "access_token_secret": "NUiAdC4FtfkSnOdGI22UbSJn9AtfbpR6OtHYvYUiJyZwI"
-}
-END
