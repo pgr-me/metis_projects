@@ -113,7 +113,9 @@
   var heatmapLayer = new HeatmapOverlay(cfg);
 
   var baseLayer = L.tileLayer(
-    'https://{s}.tiles.mapbox.com/v3/cwhong.map-hziyh867/{z}/{x}/{y}.png',{
+    'https://api.mapbox.com/styles/v1/petergrasmussen/cipilsulw001cbsno9g0pfuv8/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoicGV0ZXJncmFzbXVzc2VuIiwiYSI6ImcyTGt6SmsifQ.UAnB6ko5COfdQHBXhWkWRw',{
+    //'http://{s}.tile.osm.org/{z}/{x}/{y}.png',{
+    //'https://{s}.tiles.mapbox.com/v3/cwhong.map-hziyh867/{z}/{x}/{y}.png',{
       attribution: "<a href='https://www.mapbox.com/about/maps/' target='_blank'>&copy; Mapbox &copy; OpenStreetMap</a> <a class='mapbox-improve-map' href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a>",
       maxZoom: 18
     }

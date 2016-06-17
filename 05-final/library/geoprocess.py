@@ -7,6 +7,11 @@ import shutil
 import subprocess
 import os
 
+import rasterio
+from rasterio import features
+from rasterio.features import shapes
+from shapely.geometry import mapping, shape
+
 
 def get_tif_ids(tifs_dir):
     """
@@ -78,3 +83,30 @@ def raster_to_rasters(countries, input_tif_path, input_shp_dir, output_tif_dir):
         output_tif_abs_path = cwd + '/' + output_tif_dir + '/' + country + '.tif'
         # clip raster using country shapefile and save output to tif dir
         subprocess.check_call(['gdalwarp', '-dstnodata', '255', '-q', '-cutline', input_shp_abs_path, '-crop_to_cutline', '-of', 'GTiff', input_tif_abs_path, output_tif_abs_path])
+
+
+def polygonize(input_tif_dir, output_shp_dir, countries):
+
+    rm_and_mkdir(output_shp_dir)
+    for country in countries:
+        shp_filename = country + '.shp'
+        output_shp_path = os.path.join(output_shp_dir, shp_filename)
+        tif_filename = country + '.tif'
+        input_tif_path = os.path.join(input_tif_dir, tif_filename)
+
+        with rasterio.open(input_tif_path) as src:
+            band = src.read(1)
+
+        mask = band != 255
+        shapes = features.shapes(band, mask=mask, transform=src.transform)
+        geomvals = list(shapes)
+
+        geom_val_trios = []
+        for idx, geom_val in enumerate(geomvals):
+            shapely_geom = shape(geomvals[idx][0])
+            shapely_val = geomvals[idx][1]
+            geom_val_trio = [shapely_geom, shapely_val, country]
+            geom_val_trios.append(geom_val_trio)
+        gdf = gpd.GeoDataFrame(geom_val_trios, columns={'geometry', 'val', 'country'})
+        gdf.crs = {'init': 'epsg:4326', 'no_defs': True}
+        gdf.to_file(output_shp_path)
