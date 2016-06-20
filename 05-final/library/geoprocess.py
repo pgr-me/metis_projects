@@ -1,12 +1,14 @@
-import fiona
-import geopandas as gpd
 import glob
-from rasterstats import zonal_stats
 import pandas as pd
 import shutil
 import subprocess
 import os
 
+import fiona
+import geopandas as gpd
+from rasterstats import zonal_stats
+import ogr
+import osr
 import rasterio
 from rasterio import features
 from rasterio.features import shapes
@@ -110,3 +112,95 @@ def polygonize(input_tif_dir, output_shp_dir, countries):
         gdf = gpd.GeoDataFrame(geom_val_trios, columns={'geometry', 'val', 'country'})
         gdf.crs = {'init': 'epsg:4326', 'no_defs': True}
         gdf.to_file(output_shp_path)
+
+
+def union_and_filter(input_dir, output_dir, countries):
+    # make dir to hold unioned and dissolved shapefiles
+    rm_and_mkdir(output_dir)
+    for country in countries:
+        print country
+        # specify io paths
+        input_filename = country + '.shp'
+        input_path = os.path.join(input_dir, input_filename)
+        output_path = os.path.join(output_dir, input_filename)
+
+        # load country shapefile
+        gdf_country = gpd.read_file(input_path)
+        gdf_country.rename(columns={'country': 'val', 'val': 'country'}, inplace=True)
+
+        # filter out low pixel values
+        thresh = 25
+        gdf_country = gdf_country[gdf_country['val'] >= thresh]
+
+        # union resulting geometries, assign crs, write to temp file
+        polys = gdf_country.geometry
+        poly = polys.unary_union
+        poly_country = [country, poly]
+        gdf_poly_country = gpd.GeoDataFrame(poly_country).T.rename(columns={0: 'country', 1: 'geometry'})
+        gdf_poly_country.crs = {'init': 'epsg:4326', 'no_defs': True}
+        try:
+            gdf_poly_country.to_file(output_path)
+        except:
+            print 'No polygon values greater than thresh'
+
+
+def get_countries(the_dir):
+    the_path = the_dir + '/*.shp'
+    countries = [os.path.basename(x)[:3] for x in glob.glob(the_path)]
+    return countries
+
+
+def split_multi_to_single_poly(input_dir, output_dir):
+    # get list of countries in input dir
+    countries = get_countries(input_dir)
+
+    # make dir to hold unioned and dissolved shapefiles
+    rm_and_mkdir(output_dir)
+
+    for country in countries:
+        # specify io directories and filenames
+        input_filename = country + '.shp'
+        input_path = os.path.join(input_dir, input_filename)
+        output_path = os.path.join(output_dir, input_filename)
+        # write to split geometries (polys intstead of multi-polys) to target dir
+        try:
+            print country
+            with fiona.open(input_path) as input:
+                # create the new file: the driver, crs and schema are the same
+                with fiona.open(output_path, 'w', driver=input.driver, crs=input.crs, schema=input.schema) as output:
+                    # read the input file
+                    for multi in input:
+                        # extract each Polygon feature
+                        for poly in shape(multi['geometry']):
+                            # write the Polygon feature
+                            output.write({'properties': multi['properties'], 'geometry': mapping(poly)})
+        except:
+            print 'error with %s' % country
+
+
+def merge_shapefiles(input_dir, output_dir, output_filename):
+    rm_and_mkdir(output_dir)
+
+    output_path = os.path.join(output_dir, output_filename)
+
+    file_ends_with = '.shp'
+    driver_name = 'ESRI Shapefile'
+    geometry_type = ogr.wkbPolygon
+
+    out_driver = ogr.GetDriverByName(driver_name)
+    out_ds = out_driver.CreateDataSource(output_path)
+    out_layer = out_ds.CreateLayer(output_path, geom_type=geometry_type)
+
+    fileList = os.listdir(input_dir)
+
+    for file in fileList:
+        if file.endswith(file_ends_with):
+            print file
+            input_path = os.path.join(input_dir, file)
+            ds = ogr.Open(input_path)
+            lyr = ds.GetLayer()
+            for feat in lyr:
+                out_feat = ogr.Feature(out_layer.GetLayerDefn())
+                out_feat.SetGeometry(feat.GetGeometryRef().Clone())
+                out_layer.CreateFeature(out_feat)
+                out_layer.SyncToDisk()
