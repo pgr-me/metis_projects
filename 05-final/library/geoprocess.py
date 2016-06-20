@@ -3,6 +3,8 @@ import pandas as pd
 import shutil
 import subprocess
 import os
+import zipfile
+from urllib import urlretrieve
 
 import fiona
 import geopandas as gpd
@@ -204,3 +206,37 @@ def merge_shapefiles(input_dir, output_dir, output_filename):
                 out_feat.SetGeometry(feat.GetGeometryRef().Clone())
                 out_layer.CreateFeature(out_feat)
                 out_layer.SyncToDisk()
+
+
+def set_crs(input_path, crs, output_path):
+    geodataframe = gpd.read_file(input_path)
+    geodataframe.crs = {'init': crs, 'no_defs': True}
+    geodataframe.to_file(output_path)
+
+
+def get_unzip_shp(url, output_dir):
+    zip_filename = 'temp.zip'
+    zip_path = os.path.join(output_dir, zip_filename)
+    urlretrieve(url, zip_path)
+    zip_ref = zipfile.ZipFile(zip_path, 'r')
+    zip_ref.extractall(output_dir)
+    zip_ref.close()
+    os.remove(zip_path)
+
+
+def copy_shapefiles(files_to_copy, output_dir):
+    for f in files_to_copy:
+        filename = os.path.basename(f)
+        filepath = os.path.join(output_dir, filename)
+        shutil.copyfile(f, filepath)
+
+
+def zip_files(src, dst, arcname=None):
+    zip_ = zipfile.ZipFile(dst, 'w')
+    print src, dst
+    for i in range(len(src)):
+        if arcname is None:
+            zip_.write(src[i], os.path.basename(src[i]), compress_type = zipfile.ZIP_DEFLATED)
+        else:
+            zip_.write(src[i], arcname[i], compress_type = zipfile.ZIP_DEFLATED)
+    zip_.close()
