@@ -42,10 +42,16 @@ def zonal_to_shp(tifs_dir, shp_path):
     ids = get_tif_ids(tifs_dir)
     geodataframe = gpd.GeoDataFrame.from_file(shp_path)
     for idx, tif in enumerate(tifs):
-        stats = zonal_stats(shp_path, tif)
+        stats = zonal_stats(shp_path, tif, nodata=255, stats='count mean')
         li_stats = []
         for i in range(len(stats)):
-            li_stats.append(stats[i]['mean'])
+            try:
+                the_mean = stats[i]['mean']
+                the_count = stats[i]['count']
+                the_total = the_mean * the_count
+            except:
+                the_total = 255
+            li_stats.append(the_total)
         s_stats = pd.Series(li_stats, name=ids[idx])
         geodataframe = geodataframe.join(s_stats)
     return geodataframe
